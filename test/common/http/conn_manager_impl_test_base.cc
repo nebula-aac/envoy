@@ -152,7 +152,7 @@ HttpConnectionManagerImplMixin::HttpConnectionManagerImplMixin()
       access_log_path_("dummy_path"),
       access_logs_{AccessLog::InstanceSharedPtr{new Extensions::AccessLoggers::File::FileAccessLog(
           Filesystem::FilePathAndType{Filesystem::DestinationType::File, access_log_path_}, {},
-          Formatter::HttpSubstitutionFormatUtils::defaultSubstitutionFormatter(), log_manager_)}},
+          *Formatter::HttpSubstitutionFormatUtils::defaultSubstitutionFormatter(), log_manager_)}},
       codec_(new NiceMock<MockServerConnection>()),
       stats_({ALL_HTTP_CONN_MAN_STATS(POOL_COUNTER(*fake_stats_.rootScope()),
                                       POOL_GAUGE(*fake_stats_.rootScope()),
@@ -172,7 +172,7 @@ HttpConnectionManagerImplMixin::HttpConnectionManagerImplMixin()
   // method only.
   EXPECT_CALL(response_encoder_, getStream()).Times(AtLeast(0));
 
-  ip_detection_extensions_.push_back(getXFFExtension(0));
+  ip_detection_extensions_.push_back(getXFFExtension(0, false));
 }
 
 HttpConnectionManagerImplMixin::~HttpConnectionManagerImplMixin() {
@@ -394,21 +394,15 @@ void HttpConnectionManagerImplMixin::expectOnDestroy(bool deferred) {
   for (auto filter : decoder_filters_) {
     EXPECT_CALL(*filter, onStreamComplete());
   }
-  {
-    auto setup_filter_expect = [](MockStreamEncoderFilter* filter) {
-      EXPECT_CALL(*filter, onStreamComplete());
-    };
-    std::for_each(encoder_filters_.rbegin(), encoder_filters_.rend(), setup_filter_expect);
+  for (auto filter : encoder_filters_) {
+    EXPECT_CALL(*filter, onStreamComplete());
   }
 
   for (auto filter : decoder_filters_) {
     EXPECT_CALL(*filter, onDestroy());
   }
-  {
-    auto setup_filter_expect = [](MockStreamEncoderFilter* filter) {
-      EXPECT_CALL(*filter, onDestroy());
-    };
-    std::for_each(encoder_filters_.rbegin(), encoder_filters_.rend(), setup_filter_expect);
+  for (auto filter : encoder_filters_) {
+    EXPECT_CALL(*filter, onDestroy());
   }
 
   if (deferred) {

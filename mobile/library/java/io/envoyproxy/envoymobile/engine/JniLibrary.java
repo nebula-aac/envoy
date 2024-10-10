@@ -230,7 +230,7 @@ public class JniLibrary {
   protected static native void onDefaultNetworkAvailable(long engine);
 
   /**
-   * A callback into the Envoy Engine when the default network configuration was changed.
+   * A callback into the Envoy Engine when the default network was changed.
    */
   protected static native void onDefaultNetworkChanged(long engine, int networkType);
 
@@ -307,11 +307,13 @@ public class JniLibrary {
       boolean forceV6, boolean useGro, String http3ConnectionOptions,
       String http3ClientConnectionOptions, byte[][] quicHints, byte[][] quicCanonicalSuffixes,
       boolean enableGzipDecompression, boolean enableBrotliDecompression,
-      boolean enablePortMigration, boolean enableSocketTagging, boolean enableInterfaceBinding,
-      long h2ConnectionKeepaliveIdleIntervalMilliseconds, long h2ConnectionKeepaliveTimeoutSeconds,
-      long maxConnectionsPerHost, long streamIdleTimeoutSeconds, long perTryIdleTimeoutSeconds,
-      String appVersion, String appId, boolean trustChainVerification, byte[][] filterChain,
-      boolean enablePlatformCertificatesValidation, String upstreamTlsSni, byte[][] runtimeGuards);
+      int numTimeoutsToTriggerPortMigration, boolean enableSocketTagging,
+      boolean enableInterfaceBinding, long h2ConnectionKeepaliveIdleIntervalMilliseconds,
+      long h2ConnectionKeepaliveTimeoutSeconds, long maxConnectionsPerHost,
+      long streamIdleTimeoutSeconds, long perTryIdleTimeoutSeconds, String appVersion, String appId,
+      boolean trustChainVerification, byte[][] filterChain,
+      boolean enablePlatformCertificatesValidation, String upstreamTlsSni, byte[][] runtimeGuards,
+      byte[][] cares_fallback_resolvers);
 
   /**
    * Initializes c-ares.
@@ -319,4 +321,9 @@ public class JniLibrary {
    * href="https://c-ares.org/docs/ares_library_init_android.html">ares_library_init_android</a>.
    */
   public static native void initCares(ConnectivityManager connectivityManager);
+
+  /**
+   * Returns true if the runtime feature is enabled.
+   */
+  public static native boolean isRuntimeFeatureEnabled(String featureName);
 }
